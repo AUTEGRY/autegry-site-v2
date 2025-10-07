@@ -38,7 +38,7 @@ exports.handler = async (event, context) => {
     }
 
     // Create transporter using environment variables
-    const transporter = nodemailer.createTransporter({
+    const transporter = nodemailer.createTransport({
       host: process.env.SECRET_SMTP_HOST,
       port: parseInt(process.env.SECRET_SMTP_PORT),
       secure: process.env.SECRET_SMTP_SSL === 'true',
