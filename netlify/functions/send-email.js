@@ -37,6 +37,16 @@ exports.handler = async (event, context) => {
       };
     }
 
+    // Debug: Check if environment variables are set
+    if (!process.env.SECRET_SMTP_HOST || !process.env.SECRET_SMTP_USER || !process.env.SECRET_SMTP_PASSWORD) {
+      console.error('Missing SMTP environment variables');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({ error: 'SMTP configuration missing' }),
+      };
+    }
+
     // Create transporter using environment variables
     const transporter = nodemailer.createTransport({
       host: process.env.SECRET_SMTP_HOST,
@@ -51,8 +61,8 @@ exports.handler = async (event, context) => {
 
     // Email content
     const mailOptions = {
-      from: `"${name}" <${process.env.SECRET_SMTP_USER}>`,
-      to: 'info@autegry.com', // Your company email
+      from: `"${name}" <info@autegry.com>`, // Must be a verified email in AWS SES
+      to: 'info@autegry.com', // Your company email - ensure this is verified in AWS SES
       subject: subject || 'New Contact Form Submission',
       html: `
         <h2>New Contact Form Submission</h2>
