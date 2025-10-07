@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { Mail, Phone, MapPin, Linkedin, Instagram, Facebook } from "lucide-react";
+import { Mail, Phone, MapPin, Linkedin, Instagram, Facebook, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const Contact = () => {
   const { t } = useLanguage();
@@ -18,6 +19,7 @@ const Contact = () => {
     email: "",
     phone: ""
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -79,12 +81,40 @@ const Contact = () => {
     return !newErrors.email && !newErrors.phone;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Form is valid, proceed with submission
-      console.log("Form submitted:", formData);
-      // Add your form submission logic here
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/.netlify/functions/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        toast.success("Thank you! Your message has been sent successfully.");
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: ""
+        });
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Failed to send message. Please try again.");
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast.error("Failed to send message. Please check your connection and try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
   return (
@@ -167,12 +197,20 @@ const Contact = () => {
                 />
               </div>
 
-              <Button 
+              <Button
                 type="submit"
+                disabled={isSubmitting}
                 style={{ backgroundColor: '#00473C' }}
-                className="w-full md:w-auto px-6 md:px-8 py-4 md:py-6 hover:opacity-90 text-white rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                className="w-full md:w-auto px-6 md:px-8 py-4 md:py-6 hover:opacity-90 text-white rounded-full font-semibold transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                {t('contact.submit')}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  t('contact.submit')
+                )}
               </Button>
             </form>
           </div>
