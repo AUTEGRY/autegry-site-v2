@@ -41,7 +41,8 @@ exports.handler = async (event, context) => {
     const transporter = nodemailer.createTransport({
       host: process.env.SECRET_SMTP_HOST,
       port: parseInt(process.env.SECRET_SMTP_PORT),
-      secure: process.env.SECRET_SMTP_SSL === 'true',
+      secure: false, // For port 587, use STARTTLS instead of direct SSL
+      requireTLS: true, // Require encrypted connection
       auth: {
         user: process.env.SECRET_SMTP_USER,
         pass: process.env.SECRET_SMTP_PASSWORD,
