@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const InsightArticle = () => {
   const { id } = useParams();
+  const { getLanguagePath } = useLanguage();
 
   // Sample article data (in a real app, this would come from an API)
   const articles = {
@@ -125,7 +127,7 @@ const InsightArticle = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Article Not Found</h1>
-          <Link to="/">
+          <Link to={getLanguagePath('')}>
             <Button>Return Home</Button>
           </Link>
         </div>
@@ -139,7 +141,7 @@ const InsightArticle = () => {
       
       <article className="max-w-4xl mx-auto px-6 py-12">
         {/* Back Button */}
-        <Link to="/" className="inline-flex items-center text-primary hover:text-primary/80 mb-8">
+        <Link to={getLanguagePath('')} className="inline-flex items-center text-primary hover:text-primary/80 mb-8">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Home
         </Link>

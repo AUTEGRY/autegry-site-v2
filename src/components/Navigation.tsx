@@ -8,18 +8,21 @@ import LanguageSwitcher from "./LanguageSwitcher";
 const Navigation = () => {
   const [activeSection, setActiveSection] = useState('hero');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { t } = useLanguage();
+  const { t, getLanguagePath } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleNavigation = (sectionId: string, filter?: string) => {
-    if (location.pathname === '/') {
+    const homePath = getLanguagePath('');
+    const currentPathWithoutLang = location.pathname.replace(/^\/(en|bg)/, '') || '/';
+
+    if (currentPathWithoutLang === '/' || location.pathname === homePath) {
       // If on home page, scroll to section
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth' });
         setActiveSection(sectionId);
-        
+
         // If filter is provided for services section, trigger filter change
         if (sectionId === 'services' && filter) {
           const event = new CustomEvent('serviceFilterChange', { detail: { filter } });
@@ -29,10 +32,10 @@ const Navigation = () => {
     } else {
       // If on another page, navigate to home first
       if (sectionId === 'hero') {
-        navigate('/');
+        navigate(homePath);
       } else {
         const hash = filter ? `#${sectionId}?filter=${filter}` : `#${sectionId}`;
-        navigate(hash);
+        navigate(homePath + hash);
       }
     }
     // Close mobile menu after navigation
@@ -49,7 +52,7 @@ const Navigation = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-300 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <Link to="/" onClick={() => { setActiveSection('hero'); setIsMobileMenuOpen(false); }} className="flex items-center cursor-pointer">
+            <Link to={getLanguagePath('')} onClick={() => { setActiveSection('hero'); setIsMobileMenuOpen(false); }} className="flex items-center cursor-pointer">
               <img 
                 src="/lovable-uploads/7deed23c-be53-4ad5-aaab-04474a25e582.png" 
                 alt="AUTEGRY Logo" 

@@ -2,26 +2,26 @@ import { Mail, Phone, MapPin, Linkedin, Instagram, Facebook, Dribbble } from "lu
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, getLanguagePath } = useLanguage();
   
   const getHref = (linkText: string) => {
     // Email links
     if (linkText.includes('@')) return `mailto:${linkText}`;
-    
+
     // Company links
-    if (linkText === t('footer.home')) return '#';
-    if (linkText === t('footer.aboutUs')) return '#about';
-    if (linkText === t('footer.solutions')) return '#services';
-    if (linkText === t('footer.contact')) return '#contact';
-    
+    if (linkText === t('footer.home')) return getLanguagePath('');
+    if (linkText === t('footer.aboutUs')) return getLanguagePath('') + '#about';
+    if (linkText === t('footer.solutions')) return getLanguagePath('') + '#services';
+    if (linkText === t('footer.contact')) return getLanguagePath('') + '#contact';
+
     // Services links - all point to services section
-    if (linkText === t('services.filters.all') || 
+    if (linkText === t('services.filters.all') ||
         linkText === t('services.filters.applicants') ||
         linkText === t('services.filters.activeClients') ||
         linkText === t('services.filters.inactiveClients')) {
-      return '#services';
+      return getLanguagePath('') + '#services';
     }
-    
+
     return '#';
   };
 
@@ -123,13 +123,13 @@ const Footer = () => {
           </div>
 
           <div className="flex space-x-6 text-sm justify-center md:justify-end">
-            <a href="/legal?tab=terms" className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+            <a href={getLanguagePath('legal') + '?tab=terms'} className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
               {t('footer.terms')}
             </a>
-            <a href="/legal?tab=privacy" className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+            <a href={getLanguagePath('legal') + '?tab=privacy'} className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
               {t('footer.privacy')}
             </a>
-            <a href="/legal?tab=cookies" className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+            <a href={getLanguagePath('legal') + '?tab=cookies'} className="text-gray-500 hover:text-gray-700 transition-colors duration-300">
               {t('footer.cookies')}
             </a>
           </div>

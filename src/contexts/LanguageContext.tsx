@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export type Language = 'en' | 'bg';
 
@@ -6,6 +7,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  getLanguagePath: (path: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -562,14 +564,63 @@ const translations = {
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('bg');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract language from URL or default to 'bg'
+  const getLanguageFromUrl = (): Language => {
+    const pathSegments = location.pathname.split('/').filter(Boolean);
+    const firstSegment = pathSegments[0];
+    return firstSegment === 'en' ? 'en' : 'bg';
+  };
+
+  const [language, setLanguageState] = useState<Language>(getLanguageFromUrl);
+
+  // Update language when URL changes
+  useEffect(() => {
+    const urlLanguage = getLanguageFromUrl();
+    if (urlLanguage !== language) {
+      setLanguageState(urlLanguage);
+    }
+  }, [location.pathname]);
+
+  const setLanguage = (newLang: Language) => {
+    if (newLang === language) return;
+
+    // Get current path without language prefix
+    const pathWithoutLang = location.pathname.replace(/^\/(en|bg)/, '') || '/';
+    const searchParams = location.search;
+    const hash = location.hash;
+
+    // Build new path with language prefix
+    const newPath = newLang === 'bg'
+      ? pathWithoutLang === '/' ? '/' : pathWithoutLang
+      : `/en${pathWithoutLang}`;
+
+    // Navigate to new path with language
+    navigate(newPath + searchParams + hash, { replace: true });
+    setLanguageState(newLang);
+  };
 
   const t = (key: string): string => {
     return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 
+  const getLanguagePath = (path: string): string => {
+    // Remove leading slash if present
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    // For Bulgarian (default), return path as-is (no language prefix)
+    if (language === 'bg') {
+      return cleanPath === '' ? '/' : `/${cleanPath}`;
+    }
+
+    // For English, add /en prefix
+    return cleanPath === '' ? '/en' : `/en/${cleanPath}`;
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, getLanguagePath }}>
       {children}
     </LanguageContext.Provider>
   );

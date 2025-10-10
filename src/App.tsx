@@ -20,22 +20,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <DocumentMetaUpdater />
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+    <BrowserRouter>
+      <LanguageProvider>
+        <DocumentMetaUpdater />
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <Routes>
+            {/* Bulgarian routes (default, no language prefix) */}
             <Route path="/" element={<Index />} />
             <Route path="/legal" element={<Legal />} />
             <Route path="/insights/:id" element={<InsightArticle />} />
+
+            {/* English routes (with /en prefix) */}
+            <Route path="/en" element={<Index />} />
+            <Route path="/en/legal" element={<Legal />} />
+            <Route path="/en/insights/:id" element={<InsightArticle />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </LanguageProvider>
+        </TooltipProvider>
+      </LanguageProvider>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
