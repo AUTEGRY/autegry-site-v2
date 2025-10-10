@@ -280,6 +280,10 @@ const translations = {
     'footer.privacy': 'Privacy Policy',
     'footer.cookies': 'Cookie Policy',
     'footer.copyright': '© AUTEGRY 2025. All Rights Reserved.',
+    // Meta and title tags
+    'meta.title': 'Autegry - analytical solutions and process automation',
+    'meta.description': 'We help businesses through automation and data analysis to develop relationships with their clients, expand their activities and effectively manage risks, so they can make better decisions.',
+    'meta.appTitle': 'Autegry',
   },
   bg: {
     'nav.home': 'Начало',
@@ -550,6 +554,10 @@ const translations = {
     'footer.privacy': 'Политика за поверителност',
     'footer.cookies': 'Бисквитки',
     'footer.copyright': '© AUTEGRY 2025. Всички права запазени.',
+    // Meta and title tags
+    'meta.title': 'Аутегри - аналитични решения и автоматизация на процеси',
+    'meta.description': 'Помагаме на бизнеса чрез автоматизация и анализ на данни да развива отношения с клиентите си, да разширява дейността си и ефективно да управлява рисковете, за да може да взема по-добри решения.',
+    'meta.appTitle': 'Autegry',
   },
 };
 

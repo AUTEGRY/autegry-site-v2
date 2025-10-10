@@ -1,0 +1,113 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: autegry-traefik-prod
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=info@autegry.com
+      - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme.json:/acme.json
+    networks:
+      - autegry-network
+    restart: always
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: autegry-site-prod
+    # Remove direct port mapping since Traefik handles routing
+    # ports:
+    #   - "8080:3001"
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - FRONTEND_URL=https://autegry.com
+      # SMTP Configuration (set these in .env.production file)
+      - SECRET_SMTP_HOST=${SECRET_SMTP_HOST}
+      - SECRET_SMTP_PORT=${SECRET_SMTP_PORT}
+      - SECRET_SMTP_USER=${SECRET_SMTP_USER}
+      - SECRET_SMTP_PASSWORD=${SECRET_SMTP_PASSWORD}
+    env_file:
+      - .env.production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "com.autegry.description=Autegry Site Production"
+      - "com.autegry.version=2.0"
+      - "traefik.enable=true"
+      - "traefik.http.routers.autegry-prod.rule=Host(`autegry.com`)"
+      - "traefik.http.routers.autegry-prod.entrypoints=websecure"
+      - "traefik.http.routers.autegry-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.services.autegry-prod.loadbalancer.server.port=3001"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - autegry-network
+    depends_on:
+      - traefik
+
+  # Optional: Add monitoring with Watchtower for auto-updates
+  # watchtower:
+  #   image: containrrr/watchtower
+  #   container_name: autegry-watchtower
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   environment:
+  #     - WATCHTOWER_CLEANUP=true
+  #     - WATCHTOWER_POLL_INTERVAL=300
+  #     - WATCHTOWER_INCLUDE_STOPPED=true
+  #     - WATCHTOWER_MONITOR_ONLY=false
+  #   restart: unless-stopped
+  #   networks:
+  #     - autegry-network
+
+  # Optional: Add nginx reverse proxy for SSL termination and load balancing
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: autegry-nginx-prod
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/prod.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+  #   depends_on:
+  #     - web
+  #   restart: always
+  #   networks:
+  #     - autegry-network
+
+
+networks:
+  autegry-network:
+    driver: bridge

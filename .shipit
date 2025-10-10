@@ -1,0 +1,21 @@
+
+host=airflow-production-us
+path='/home/ec2-user/autegry-site-v2'
+
+[deploy:local]
+# git push origin master
+echo "Deploying to: $host:$path "
+rsync -ahzv --delete ./ $SSH_HOST:$SSH_PATH/
+scp ./.streamlit/$SSH_HOST.toml $SSH_HOST:$SSH_PATH/.streamlit/secrets.toml
+echo "Open eu http://10.90.5.37:8501/"
+
+
+[deploy]
+docker build -t autegry-site-v2 .
+docker stop autegry-site-v2 || true
+docker rm autegry-site-v2 || true
+docker run --name autegry-site-v2 -d --env-file .env -p 8501:8501 airflow_dashboard
+
+[status]
+uptime
+

@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Mail, Phone, MapPin, Linkedin, Instagram, Facebook, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { API_ENDPOINTS } from "@/config/api";
 
 const Contact = () => {
   const { t } = useLanguage();
@@ -20,6 +21,23 @@ const Contact = () => {
     phone: ""
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Validation helpers - same logic as backend
+  const validateEmail = (email: string) => {
+    if (!email.trim()) return "Email is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+
+  const validatePhone = (phone: string) => {
+    if (!phone.trim()) return "Phone is required";
+    // Same phone validation as backend: allows +, numbers, spaces, hyphens, parentheses, min 10 chars
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+      return "Please enter a valid phone number (at least 10 digits, +, -, (), spaces allowed)";
+    }
+    return "";
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -37,45 +55,28 @@ const Contact = () => {
   };
 
   const handleBlur = (field: string) => {
-    if (field === "email" && formData.email.trim()) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        setErrors(prev => ({
-          ...prev,
-          email: "Please enter a valid email address"
-        }));
-      }
-    }
-    
-    if (field === "phone" && !formData.phone.trim()) {
+    if (field === "email") {
+      const emailError = validateEmail(formData.email);
       setErrors(prev => ({
         ...prev,
-        phone: "Phone is required"
+        email: emailError
       }));
     }
-    
-    if (field === "email" && !formData.email.trim()) {
+
+    if (field === "phone") {
+      const phoneError = validatePhone(formData.phone);
       setErrors(prev => ({
         ...prev,
-        email: "Email is required"
+        phone: phoneError
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {
-      email: "",
-      phone: ""
+      email: validateEmail(formData.email),
+      phone: validatePhone(formData.phone)
     };
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone is required";
-    }
 
     setErrors(newErrors);
     return !newErrors.email && !newErrors.phone;
@@ -88,7 +89,7 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/.netlify/functions/send-email', {
+      const response = await fetch(API_ENDPOINTS.SEND_EMAIL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
